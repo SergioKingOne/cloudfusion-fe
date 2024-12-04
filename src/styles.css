@@ -1,8 +1,72 @@
 :root {
-  --color-light: #dcf2f1;
-  --color-accent: #7fc7d9;
-  --color-primary: #365486;
-  --color-dark: #0f1035;
+  --text-50: #edf8f3;
+  --text-100: #dbf0e7;
+  --text-200: #b6e2ce;
+  --text-300: #92d3b6;
+  --text-400: #6dc59d;
+  --text-500: #49b685;
+  --text-600: #3a926a;
+  --text-700: #2c6d50;
+  --text-800: #1d4935;
+  --text-900: #0f241b;
+  --text-950: #07120d;
+
+  --background-50: #edf7f0;
+  --background-100: #dbf0e0;
+  --background-200: #b8e0c2;
+  --background-300: #94d1a3;
+  --background-400: #70c285;
+  --background-500: #4db366;
+  --background-600: #3d8f52;
+  --background-700: #2e6b3d;
+  --background-800: #1f4729;
+  --background-900: #0f2414;
+  --background-950: #08120a;
+
+  --primary-50: #ecf8f3;
+  --primary-100: #daf1e7;
+  --primary-200: #b5e3d0;
+  --primary-300: #8fd6b8;
+  --primary-400: #6ac8a1;
+  --primary-500: #45ba89;
+  --primary-600: #37956e;
+  --primary-700: #297052;
+  --primary-800: #1c4a37;
+  --primary-900: #0e251b;
+  --primary-950: #07130e;
+
+  --secondary-50: #ecf3f8;
+  --secondary-100: #dae7f1;
+  --secondary-200: #b5cee3;
+  --secondary-300: #8fb6d6;
+  --secondary-400: #6a9ec8;
+  --secondary-500: #4585ba;
+  --secondary-600: #376b95;
+  --secondary-700: #295070;
+  --secondary-800: #1c354a;
+  --secondary-900: #0e1b25;
+  --secondary-950: #070d13;
+
+  --accent-50: #ecf0f8;
+  --accent-100: #dae1f1;
+  --accent-200: #b5c3e3;
+  --accent-300: #8fa6d6;
+  --accent-400: #6a88c8;
+  --accent-500: #456aba;
+  --accent-600: #375595;
+  --accent-700: #294070;
+  --accent-800: #1c2a4a;
+  --accent-900: #0e1525;
+  --accent-950: #070b13;
+
+  --bg-primary: var(--background-50);
+  --bg-secondary: var(--background-100);
+  --text-primary: var(--text-900);
+  --text-secondary: var(--text-700);
+  --border-color: var(--background-200);
+  --accent-color: var(--accent-500);
+  --primary-color: var(--primary-600);
+
   --shadow-sm: 0 2px 4px rgba(15, 16, 53, 0.1);
   --shadow-md: 0 4px 6px rgba(15, 16, 53, 0.1);
   --shadow-lg: 0 10px 15px rgba(15, 16, 53, 0.1);
@@ -12,17 +76,32 @@
   --transition: all 0.3s ease;
 }
 
+[data-theme="dark"] {
+  --bg-primary: var(--background-900);
+  --bg-secondary: var(--background-800);
+  --text-primary: var(--text-100);
+  --text-secondary: var(--text-300);
+  --border-color: var(--background-700);
+  --accent-color: var(--accent-400);
+  --primary-color: var(--primary-400);
+
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.2);
+}
+
 body {
   margin: 0;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: var(--color-light);
-  color: var(--color-dark);
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
   line-height: 1.6;
+  transition: var(--transition);
 }
 
 .navbar {
-  background-color: var(--color-primary);
-  color: var(--color-light);
+  background-color: var(--primary-color);
+  color: var(--bg-primary);
   padding: 1.25rem;
   box-shadow: var(--shadow-md);
 }
@@ -38,7 +117,7 @@ body {
   padding: 2rem;
   max-width: 1200px;
   margin: 2rem auto;
-  background-color: white;
+  background-color: var(--bg-primary);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
 }
@@ -70,7 +149,7 @@ body {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
-  color: var(--color-dark);
+  color: var(--text-secondary);
 }
 
 .form-group input[type="text"],
@@ -78,22 +157,24 @@ body {
 .form-group textarea {
   width: 100%;
   padding: 0.75rem;
-  border: 2px solid var(--color-light);
+  border: 2px solid var(--border-color);
   border-radius: var(--radius-sm);
   font-size: 1rem;
   transition: var(--transition);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 .form-group input[type="text"]:focus,
 .form-group input[type="date"]:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px rgba(127, 199, 217, 0.2);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px var(--accent-100);
 }
 
 button {
-  background-color: var(--color-primary);
+  background-color: var(--primary-color);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -104,12 +185,12 @@ button {
 }
 
 button:hover {
-  background-color: var(--color-dark);
+  background-color: var(--text-primary);
   transform: translateY(-1px);
 }
 
 button:disabled {
-  background-color: var(--color-accent);
+  background-color: var(--accent-color);
   cursor: not-allowed;
   transform: none;
 }
@@ -119,7 +200,7 @@ button:disabled {
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: var(--shadow-lg);
-  border: 3px solid var(--color-light);
+  border: 3px solid var(--text-50);
 }
 
 .entries-grid {
@@ -132,10 +213,10 @@ button:disabled {
 .entry-card {
   border-radius: var(--radius-md);
   overflow: hidden;
-  background: white;
+  background: var(--bg-primary);
   box-shadow: var(--shadow-md);
   transition: var(--transition);
-  border: 1px solid var(--color-light);
+  border: 1px solid var(--border-color);
 }
 
 .entry-card:hover {
@@ -166,20 +247,20 @@ button:disabled {
 
 .entry-details h3 {
   margin: 0 0 0.75rem 0;
-  color: var(--color-dark);
+  color: var(--text-primary);
   font-size: 1.25rem;
   font-weight: 600;
 }
 
 .entry-date {
-  color: var(--color-primary);
+  color: var(--accent-color);
   font-size: 0.875rem;
   margin-bottom: 0.75rem;
   font-weight: 500;
 }
 
 .entry-description {
-  color: var(--color-dark);
+  color: var(--text-secondary);
   font-size: 0.95rem;
   line-height: 1.6;
 }
@@ -213,20 +294,20 @@ button:disabled {
   display: block;
   width: 100%;
   padding: 0.75rem;
-  border: 2px dashed var(--color-accent);
+  border: 2px dashed var(--accent-color);
   border-radius: var(--radius-sm);
-  background-color: var(--color-light);
+  background-color: var(--text-50);
   cursor: pointer;
   transition: var(--transition);
 }
 
 .form-group input[type="file"]:hover {
-  border-color: var(--color-primary);
+  border-color: var(--primary-color);
   background-color: rgba(127, 199, 217, 0.1);
 }
 
 h2 {
-  color: var(--color-primary);
+  color: var(--primary-color);
   font-size: 1.75rem;
   font-weight: 600;
   margin-bottom: 1.5rem;
@@ -241,6 +322,29 @@ h2::after {
   left: 0;
   width: 60px;
   height: 3px;
-  background-color: var(--color-accent);
+  background-color: var(--accent-color);
   border-radius: 3px;
+}
+
+.theme-toggle {
+  background-color: transparent;
+  border: 2px solid var(--accent-color);
+  color: var(--text-primary);
+  padding: 0.5rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.theme-toggle:hover {
+  background-color: var(--accent-color);
+  color: var(--bg-primary);
+}
+
+.theme-toggle svg {
+  width: 1.25rem;
+  height: 1.25rem;
 }

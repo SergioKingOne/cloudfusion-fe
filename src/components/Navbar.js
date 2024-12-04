@@ -1,4 +1,5 @@
 import React from "react";
+import ThemeToggle from "./ThemeToggle";
 
 const Navbar = () => (
   <nav className="navbar">
@@ -12,7 +13,8 @@ const Navbar = () => (
       }}
     >
       <h1>Travel Journal</h1>
-      <div style={{ display: "flex", gap: "1rem" }}>
+      <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+        <ThemeToggle />
         <button
           style={{
             background: "transparent",
