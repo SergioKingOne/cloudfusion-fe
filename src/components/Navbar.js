@@ -2,7 +2,28 @@ import React from "react";
 
 const Navbar = () => (
   <nav className="navbar">
-    <h1>Weather-Based Playlist Generator</h1>
+    <div
+      style={{
+        maxWidth: "1200px",
+        margin: "0 auto",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+      }}
+    >
+      <h1>Travel Journal</h1>
+      <div style={{ display: "flex", gap: "1rem" }}>
+        <button
+          style={{
+            background: "transparent",
+            border: "2px solid var(--color-light)",
+            padding: "0.5rem 1rem",
+          }}
+        >
+          New Entry
+        </button>
+      </div>
+    </div>
   </nav>
 );
 
