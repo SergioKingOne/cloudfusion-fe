@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "./components/Navbar";
 import TravelMap from "./components/TravelMap";
 import TravelEntryForm from "./components/TravelEntryForm";
@@ -9,6 +9,24 @@ const App = () => {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [selectedPosition, setSelectedPosition] = useState(null);
+
+  useEffect(() => {
+    const loadEntries = async () => {
+      setLoading(true);
+      try {
+        const data = await fetchEntries();
+        setEntries(data);
+      } catch (err) {
+        setError("Failed to load entries");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadEntries();
+  }, []);
 
   const handleNewEntry = async (entry) => {
     setLoading(true);
@@ -24,12 +42,24 @@ const App = () => {
     }
   };
 
+  const handleLocationSelect = (latlng) => {
+    setSelectedPosition(latlng);
+  };
+
   return (
     <div>
       <Navbar />
       <div className="container">
-        <TravelMap entries={entries} />
-        <TravelEntryForm onSubmit={handleNewEntry} loading={loading} />
+        <TravelMap
+          entries={entries}
+          onLocationSelect={handleLocationSelect}
+          selectedPosition={selectedPosition}
+        />
+        <TravelEntryForm
+          onSubmit={handleNewEntry}
+          loading={loading}
+          selectedPosition={selectedPosition}
+        />
         {error && <div className="error">{error}</div>}
         <TravelList entries={entries} />
       </div>

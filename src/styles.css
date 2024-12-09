@@ -546,3 +546,26 @@ h2::after {
     opacity: 0;
   }
 }
+
+.coordinates-display {
+  display: flex;
+  gap: 1rem;
+  padding: 0.75rem;
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  font-family: monospace;
+}
+
+.coordinates-helper {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.form-instruction {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+  font-style: italic;
+}
