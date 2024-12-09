@@ -43,6 +43,10 @@ const App = () => {
   };
 
   const handleLocationSelect = (latlng) => {
+    console.log("Location selected:", {
+      coordinates: latlng,
+      timestamp: new Date().toISOString(),
+    });
     setSelectedPosition(latlng);
   };
 

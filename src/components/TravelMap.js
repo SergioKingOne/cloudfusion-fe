@@ -22,6 +22,11 @@ L.Icon.Default.mergeOptions({
 const LocationSelector = ({ onLocationSelect, selectedPosition }) => {
   useMapEvents({
     click: (e) => {
+      console.log("Map clicked at:", {
+        lat: e.latlng.lat,
+        lng: e.latlng.lng,
+        formatted: `${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)}`,
+      });
       onLocationSelect(e.latlng);
     },
   });
@@ -37,6 +42,14 @@ const TravelMap = ({ entries, onLocationSelect, selectedPosition }) => {
   const defaultPosition = [0, 0];
   const defaultZoom = 2;
 
+  const getMarkerPosition = (entry) => {
+    // Handle both data formats (frontend and backend)
+    if (entry.coordinates) {
+      return [entry.coordinates.lat, entry.coordinates.lng];
+    }
+    return [entry.latitude, entry.longitude];
+  };
+
   return (
     <div className="travel-map">
       <MapContainer
@@ -48,18 +61,23 @@ const TravelMap = ({ entries, onLocationSelect, selectedPosition }) => {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
-        {entries.map((entry, index) => (
-          <Marker
-            key={index}
-            position={[entry.coordinates.lat, entry.coordinates.lng]}
-          >
-            <Popup>
-              <strong>{entry.location}</strong>
-              <br />
-              {entry.date}
-            </Popup>
-          </Marker>
-        ))}
+        {entries.map((entry, index) => {
+          try {
+            const position = getMarkerPosition(entry);
+            return (
+              <Marker key={index} position={position}>
+                <Popup>
+                  <strong>{entry.location}</strong>
+                  <br />
+                  {entry.visit_date || entry.visitDate}
+                </Popup>
+              </Marker>
+            );
+          } catch (error) {
+            console.error("Error rendering marker for entry:", entry);
+            return null;
+          }
+        })}
 
         <LocationSelector
           onLocationSelect={onLocationSelect}

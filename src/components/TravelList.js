@@ -2,6 +2,10 @@ import React from "react";
 import PropTypes from "prop-types";
 
 const TravelList = ({ entries }) => {
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString();
+  };
+
   return (
     <div className="travel-list">
       <h2>My Travels</h2>
@@ -24,9 +28,10 @@ const TravelList = ({ entries }) => {
                 </div>
               )}
               <div className="entry-details">
-                <h3>{entry.location}</h3>
+                <h3>{entry.title}</h3>
+                <p className="entry-location">{entry.location}</p>
                 <p className="entry-date">
-                  {new Date(entry.date).toLocaleDateString()}
+                  {formatDate(entry.visit_date || entry.visitDate)}
                 </p>
                 <p className="entry-description">{entry.description}</p>
               </div>

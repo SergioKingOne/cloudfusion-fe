@@ -50,6 +50,13 @@ export const saveEntry = async (entry) => {
 };
 
 export const fetchEntries = async () => {
-  const response = await axios.get(`${API_BASE_URL}/entries`);
-  return response.data;
+  const response = await axios.get(`${API_BASE_URL}/travel-entries`);
+  // Transform the data to match frontend expectations
+  return response.data.map((entry) => ({
+    ...entry,
+    coordinates: {
+      lat: entry.latitude,
+      lng: entry.longitude,
+    },
+  }));
 };

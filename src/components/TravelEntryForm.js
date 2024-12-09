@@ -1,8 +1,8 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import PropTypes from "prop-types";
 import { useToast } from "../contexts/ToastContext";
 
-const TravelEntryForm = ({ onSubmit, loading }) => {
+const TravelEntryForm = ({ onSubmit, loading, selectedPosition }) => {
   const { addToast } = useToast();
   const fileInputRef = useRef(null);
   const [dragActive, setDragActive] = useState(false);
@@ -15,6 +15,18 @@ const TravelEntryForm = ({ onSubmit, loading }) => {
     photos: [],
     coordinates: { lat: null, lng: null },
   });
+
+  useEffect(() => {
+    if (selectedPosition) {
+      setEntry((prev) => ({
+        ...prev,
+        coordinates: {
+          lat: selectedPosition.lat,
+          lng: selectedPosition.lng,
+        },
+      }));
+    }
+  }, [selectedPosition]);
 
   const handleLocationSelect = (latlng) => {
     setEntry((prev) => ({
@@ -178,25 +190,6 @@ const TravelEntryForm = ({ onSubmit, loading }) => {
           />
         </div>
 
-        {/* Read-only coordinates display */}
-        <div className="form-group">
-          <label>Coordinates (Select on map)</label>
-          <div className="coordinates-display">
-            <span>
-              Lat:{" "}
-              {entry.coordinates.lat
-                ? entry.coordinates.lat.toFixed(6)
-                : "Not selected"}
-            </span>
-            <span>
-              Lng:{" "}
-              {entry.coordinates.lng
-                ? entry.coordinates.lng.toFixed(6)
-                : "Not selected"}
-            </span>
-          </div>
-        </div>
-
         <button
           type="submit"
           disabled={loading || !entry.coordinates.lat || !entry.coordinates.lng}
@@ -211,6 +204,10 @@ const TravelEntryForm = ({ onSubmit, loading }) => {
 TravelEntryForm.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   loading: PropTypes.bool.isRequired,
+  selectedPosition: PropTypes.shape({
+    lat: PropTypes.number,
+    lng: PropTypes.number,
+  }),
 };
 
 export default TravelEntryForm;
