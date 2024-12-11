@@ -74,6 +74,11 @@ const TravelEntryForm = ({ onSubmit, loading, selectedPosition }) => {
       preview: URL.createObjectURL(file),
     }));
     setPreviews((prev) => [...prev, ...newPreviews]);
+
+    setEntry((prev) => ({
+      ...prev,
+      photos: [...(prev.photos || []), ...Array.from(files)],
+    }));
   };
 
   return (

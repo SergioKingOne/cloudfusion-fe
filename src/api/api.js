@@ -5,48 +5,68 @@ const API_BASE_URL =
 const HARDCODED_USER_ID = 1; // For development
 
 export const saveEntry = async (entry) => {
-  // Transform the entry data to match backend expectations
-  const transformedEntry = {
-    user_id: HARDCODED_USER_ID,
-    title: entry.title,
-    description: entry.description,
-    location: entry.location,
-    latitude: entry.coordinates.lat,
-    longitude: entry.coordinates.lng,
-    visitDate: new Date(entry.date).toISOString(),
-  };
+  try {
+    // Transform the entry data to match backend expectations
+    const transformedEntry = {
+      user_id: HARDCODED_USER_ID,
+      title: entry.title,
+      description: entry.description,
+      location: entry.location,
+      latitude: entry.coordinates.lat,
+      longitude: entry.coordinates.lng,
+      visitDate: new Date(entry.date).toISOString(),
+    };
 
-  const response = await axios.post(
-    `${API_BASE_URL}/travel-entries`,
-    transformedEntry
-  );
+    const response = await axios.post(
+      `${API_BASE_URL}/travel-entries`,
+      transformedEntry
+    );
 
-  // If there are photos, upload them
-  if (entry.photos && entry.photos.length > 0) {
-    for (const photo of entry.photos) {
-      // First get a presigned URL
-      const {
-        data: { url, key },
-      } = await axios.post(`${API_BASE_URL}/uploads/presigned-url`, {
-        contentType: photo.type,
-      });
+    // If there are photos, upload them
+    if (entry.photos && entry.photos.length > 0) {
+      console.log("Uploading photos:", entry.photos);
 
-      // Upload to S3
-      await axios.put(url, photo, {
-        headers: { "Content-Type": photo.type },
-      });
+      for (const photo of entry.photos) {
+        try {
+          // First get a presigned URL
+          console.log("Getting presigned URL for:", photo.type);
+          const {
+            data: { upload_url, key },
+          } = await axios.post(`${API_BASE_URL}/uploads/presigned-url`, {
+            file_type: photo.type,
+          });
 
-      // Associate image with entry
-      await axios.post(
-        `${API_BASE_URL}/travel-entries/${response.data.id}/images`,
-        {
-          image_key: key,
+          console.log("Got presigned URL:", upload_url);
+
+          // Upload to S3
+          await axios.put(upload_url, photo, {
+            headers: {
+              "Content-Type": photo.type,
+              "Access-Control-Allow-Origin": "*",
+            },
+          });
+
+          // Associate image with entry
+          await axios.post(
+            `${API_BASE_URL}/travel-entries/${response.data.id}/images`,
+            {
+              image_key: key,
+            }
+          );
+        } catch (photoError) {
+          console.error("Error uploading photo:", photoError);
+          console.error("Error details:", photoError.response?.data);
+          throw photoError;
         }
-      );
+      }
     }
-  }
 
-  return response.data;
+    return response.data;
+  } catch (error) {
+    console.error("Error in saveEntry:", error);
+    console.error("Error details:", error.response?.data);
+    throw error;
+  }
 };
 
 export const fetchEntries = async () => {
