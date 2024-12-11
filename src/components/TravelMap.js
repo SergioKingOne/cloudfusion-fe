@@ -98,11 +98,9 @@ TravelMap.propTypes = {
   entries: PropTypes.arrayOf(
     PropTypes.shape({
       location: PropTypes.string.isRequired,
-      date: PropTypes.string.isRequired,
-      coordinates: PropTypes.shape({
-        lat: PropTypes.number.isRequired,
-        lng: PropTypes.number.isRequired,
-      }).isRequired,
+      visit_date: PropTypes.string.isRequired,
+      latitude: PropTypes.number.isRequired,
+      longitude: PropTypes.number.isRequired,
     })
   ).isRequired,
   onLocationSelect: PropTypes.func,

@@ -74,6 +74,7 @@ export const fetchEntries = async () => {
   // Transform the data to match frontend expectations
   return response.data.map((entry) => ({
     ...entry,
+    visit_date: entry.visit_date || entry.visitDate, // Handle both formats
     coordinates: {
       lat: entry.latitude,
       lng: entry.longitude,
@@ -88,6 +89,46 @@ export const deleteEntry = async (entryId) => {
   } catch (error) {
     console.error("Error deleting entry:", error);
     console.error("Error details:", error.response?.data);
+    throw error;
+  }
+};
+
+export const fetchEntryImages = async (entryId) => {
+  try {
+    // First get the image records
+    const response = await axios.get(
+      `${API_BASE_URL}/travel-entries/${entryId}/images`
+    );
+    console.log("Image response data:", response.data); // Debug the response
+
+    // For each image, get a presigned download URL
+    const imagesWithUrls = await Promise.all(
+      response.data.map(async (image) => {
+        try {
+          const presignedResponse = await axios.post(
+            `${API_BASE_URL}/uploads/download-url`,
+            {
+              key: image.image_key,
+            }
+          );
+          return {
+            id: image.id,
+            url: presignedResponse.data.download_url,
+          };
+        } catch (error) {
+          console.error(
+            "Error getting presigned URL for image:",
+            image.image_key
+          );
+          return null;
+        }
+      })
+    );
+
+    // Filter out any failed presigned URL requests
+    return imagesWithUrls.filter((img) => img !== null);
+  } catch (error) {
+    console.error("Error fetching entry images:", error);
     throw error;
   }
 };
