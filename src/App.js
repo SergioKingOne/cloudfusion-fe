@@ -50,6 +50,10 @@ const App = () => {
     setSelectedPosition(latlng);
   };
 
+  const handleEntryDeleted = (deletedEntryId) => {
+    setEntries((prev) => prev.filter((entry) => entry.id !== deletedEntryId));
+  };
+
   return (
     <div>
       <Navbar />
@@ -65,7 +69,7 @@ const App = () => {
           selectedPosition={selectedPosition}
         />
         {error && <div className="error">{error}</div>}
-        <TravelList entries={entries} />
+        <TravelList entries={entries} onEntryDeleted={handleEntryDeleted} />
       </div>
     </div>
   );

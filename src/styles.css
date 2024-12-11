@@ -569,3 +569,30 @@ h2::after {
   margin-bottom: 1rem;
   font-style: italic;
 }
+
+.entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.delete-button {
+  background: transparent;
+  border: none;
+  padding: 0.25rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition);
+  opacity: 0.6;
+}
+
+.delete-button:hover {
+  color: #ef4444;
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.entry-card:hover .delete-button {
+  opacity: 1;
+}

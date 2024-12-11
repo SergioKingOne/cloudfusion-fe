@@ -80,3 +80,14 @@ export const fetchEntries = async () => {
     },
   }));
 };
+
+export const deleteEntry = async (entryId) => {
+  try {
+    await axios.delete(`${API_BASE_URL}/travel-entries/${entryId}`);
+    return true;
+  } catch (error) {
+    console.error("Error deleting entry:", error);
+    console.error("Error details:", error.response?.data);
+    throw error;
+  }
+};
