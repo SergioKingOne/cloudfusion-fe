@@ -34,6 +34,7 @@ const App = () => {
     try {
       const savedEntry = await saveEntry(entry);
       setEntries((prev) => [...prev, savedEntry]);
+      setSelectedPosition(null);
     } catch (err) {
       setError("Failed to save entry. Please try again.");
       console.error(err);
@@ -67,6 +68,7 @@ const App = () => {
           onSubmit={handleNewEntry}
           loading={loading}
           selectedPosition={selectedPosition}
+          onSuccess={() => setSelectedPosition(null)}
         />
         {error && <div className="error">{error}</div>}
         <TravelList entries={entries} onEntryDeleted={handleEntryDeleted} />

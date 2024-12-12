@@ -2,7 +2,12 @@ import React, { useState, useRef, useEffect } from "react";
 import PropTypes from "prop-types";
 import { useToast } from "../contexts/ToastContext";
 
-const TravelEntryForm = ({ onSubmit, loading, selectedPosition }) => {
+const TravelEntryForm = ({
+  onSubmit,
+  loading,
+  selectedPosition,
+  onSuccess,
+}) => {
   const { addToast } = useToast();
   const fileInputRef = useRef(null);
   const [dragActive, setDragActive] = useState(false);
@@ -38,11 +43,26 @@ const TravelEntryForm = ({ onSubmit, loading, selectedPosition }) => {
     }));
   };
 
+  // Reset form function
+  const resetForm = () => {
+    setEntry({
+      title: "",
+      location: "",
+      date: "",
+      description: "",
+      photos: [],
+      coordinates: { lat: null, lng: null },
+    });
+    setPreviews([]);
+    if (onSuccess) onSuccess();
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       await onSubmit(entry);
       addToast("Travel entry saved successfully!", "success");
+      resetForm(); // Reset all fields after successful submission
     } catch (error) {
       addToast("Failed to save travel entry", "error");
     }
@@ -213,6 +233,7 @@ TravelEntryForm.propTypes = {
     lat: PropTypes.number,
     lng: PropTypes.number,
   }),
+  onSuccess: PropTypes.func,
 };
 
 export default TravelEntryForm;

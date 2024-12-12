@@ -143,6 +143,7 @@ body {
 
 .form-group {
   margin-bottom: 1.5rem;
+  width: 100%;
 }
 
 .form-group label {
@@ -156,6 +157,7 @@ body {
 .form-group input[type="date"],
 .form-group textarea {
   width: 100%;
+  box-sizing: border-box;
   padding: 0.75rem;
   border: 2px solid var(--border-color);
   border-radius: var(--radius-sm);
@@ -681,4 +683,10 @@ h2::after {
   height: 100%;
   object-fit: cover;
   transition: opacity 0.3s ease;
+}
+
+.entry-form-container {
+  padding: 0 1rem;
+  max-width: 1000px;
+  margin: 0 auto;
 }
