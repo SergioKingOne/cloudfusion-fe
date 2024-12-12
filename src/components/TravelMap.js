@@ -6,34 +6,42 @@ import {
   Popup,
   useMapEvents,
 } from "react-leaflet";
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import PropTypes from "prop-types";
-import L from "leaflet";
 
-// Fix for default marker icon
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: require("leaflet/dist/images/marker-icon-2x.png"),
+// Create custom icons for saved and unsaved markers
+const savedIcon = new L.Icon({
   iconUrl: require("leaflet/dist/images/marker-icon.png"),
+  iconRetinaUrl: require("leaflet/dist/images/marker-icon-2x.png"),
   shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+
+const unsavedIcon = new L.Icon({
+  iconUrl:
+    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
+  shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
 });
 
 // Component to handle map clicks
 const LocationSelector = ({ onLocationSelect, selectedPosition }) => {
   useMapEvents({
     click: (e) => {
-      console.log("Map clicked at:", {
-        lat: e.latlng.lat,
-        lng: e.latlng.lng,
-        formatted: `${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)}`,
-      });
       onLocationSelect(e.latlng);
     },
   });
 
   return selectedPosition ? (
-    <Marker position={selectedPosition}>
-      <Popup>Selected location</Popup>
+    <Marker position={selectedPosition} icon={unsavedIcon}>
+      <Popup>Selected location (unsaved)</Popup>
     </Marker>
   ) : null;
 };
@@ -43,7 +51,6 @@ const TravelMap = ({ entries, onLocationSelect, selectedPosition }) => {
   const defaultZoom = 2;
 
   const getMarkerPosition = (entry) => {
-    // Handle both data formats (frontend and backend)
     if (entry.coordinates) {
       return [entry.coordinates.lat, entry.coordinates.lng];
     }
@@ -65,7 +72,7 @@ const TravelMap = ({ entries, onLocationSelect, selectedPosition }) => {
           try {
             const position = getMarkerPosition(entry);
             return (
-              <Marker key={index} position={position}>
+              <Marker key={index} position={position} icon={savedIcon}>
                 <Popup>
                   <strong>{entry.location}</strong>
                   <br />

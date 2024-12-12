@@ -69,6 +69,7 @@ const App = () => {
           loading={loading}
           selectedPosition={selectedPosition}
           onSuccess={() => setSelectedPosition(null)}
+          onLocationSelect={handleLocationSelect}
         />
         {error && <div className="error">{error}</div>}
         <TravelList entries={entries} onEntryDeleted={handleEntryDeleted} />

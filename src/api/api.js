@@ -132,3 +132,33 @@ export const fetchEntryImages = async (entryId) => {
     throw error;
   }
 };
+
+export const reverseGeocode = async (lat, lng) => {
+  try {
+    const response = await axios.get(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+    );
+    return response.data.display_name;
+  } catch (error) {
+    console.error("Reverse geocoding failed:", error);
+    return null;
+  }
+};
+
+export const searchLocations = async (query) => {
+  try {
+    const response = await axios.get(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+        query
+      )}&limit=5`
+    );
+    return response.data.map((place) => ({
+      display_name: place.display_name,
+      lat: parseFloat(place.lat),
+      lng: parseFloat(place.lon),
+    }));
+  } catch (error) {
+    console.error("Location search failed:", error);
+    return [];
+  }
+};

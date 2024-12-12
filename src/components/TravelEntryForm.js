@@ -1,12 +1,14 @@
 import React, { useState, useRef, useEffect } from "react";
 import PropTypes from "prop-types";
 import { useToast } from "../contexts/ToastContext";
+import { reverseGeocode, searchLocations } from "../api/api";
 
 const TravelEntryForm = ({
   onSubmit,
   loading,
   selectedPosition,
   onSuccess,
+  onLocationSelect,
 }) => {
   const { addToast } = useToast();
   const fileInputRef = useRef(null);
@@ -20,6 +22,9 @@ const TravelEntryForm = ({
     photos: [],
     coordinates: { lat: null, lng: null },
   });
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const searchTimeoutRef = useRef(null);
 
   useEffect(() => {
     if (selectedPosition) {
@@ -33,14 +38,68 @@ const TravelEntryForm = ({
     }
   }, [selectedPosition]);
 
-  const handleLocationSelect = (latlng) => {
+  useEffect(() => {
+    const setLocationFromCoordinates = async () => {
+      if (selectedPosition?.lat && selectedPosition?.lng) {
+        try {
+          const locationName = await reverseGeocode(
+            selectedPosition.lat,
+            selectedPosition.lng
+          );
+          if (locationName) {
+            setEntry((prev) => ({
+              ...prev,
+              location: locationName,
+            }));
+          }
+        } catch (error) {
+          console.error("Failed to get location name:", error);
+        }
+      }
+    };
+
+    setLocationFromCoordinates();
+  }, [selectedPosition]);
+
+  const handleLocationSearch = async (value) => {
+    setEntry((prev) => ({ ...prev, location: value }));
+
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    // Don't search if input is empty
+    if (!value.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    // Add debouncing to prevent too many API calls
+    searchTimeoutRef.current = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const results = await searchLocations(value);
+        setSearchResults(results);
+      } catch (error) {
+        console.error("Failed to search locations:", error);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300);
+  };
+
+  const handleLocationSelect = (result) => {
     setEntry((prev) => ({
       ...prev,
+      location: result.display_name,
       coordinates: {
-        lat: latlng.lat,
-        lng: latlng.lng,
+        lat: result.lat,
+        lng: result.lng,
       },
     }));
+    onLocationSelect({ lat: result.lat, lng: result.lng });
+    setSearchResults([]); // Clear results after selection
   };
 
   // Reset form function
@@ -179,15 +238,25 @@ const TravelEntryForm = ({
 
         <div className="form-group">
           <label htmlFor="location">Location</label>
-          <input
-            type="text"
-            id="location"
-            value={entry.location}
-            onChange={(e) =>
-              setEntry((prev) => ({ ...prev, location: e.target.value }))
-            }
-            required
-          />
+          <div className="location-search-container">
+            <input
+              type="text"
+              id="location"
+              value={entry.location}
+              onChange={(e) => handleLocationSearch(e.target.value)}
+              required
+            />
+            {isSearching && <div className="search-spinner"></div>}
+            {searchResults.length > 0 && (
+              <ul className="location-suggestions">
+                {searchResults.map((result, index) => (
+                  <li key={index} onClick={() => handleLocationSelect(result)}>
+                    {result.display_name}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
 
         <div className="form-group">
@@ -234,6 +303,7 @@ TravelEntryForm.propTypes = {
     lng: PropTypes.number,
   }),
   onSuccess: PropTypes.func,
+  onLocationSelect: PropTypes.func.isRequired,
 };
 
 export default TravelEntryForm;
