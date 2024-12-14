@@ -9,19 +9,24 @@ const TravelEntryForm = ({
   selectedPosition,
   onSuccess,
   onLocationSelect,
+  initialEntry,
+  onCancel,
+  isEditing,
 }) => {
   const { addToast } = useToast();
   const fileInputRef = useRef(null);
   const [dragActive, setDragActive] = useState(false);
   const [previews, setPreviews] = useState([]);
-  const [entry, setEntry] = useState({
-    title: "",
-    location: "",
-    date: "",
-    description: "",
-    photos: [],
-    coordinates: { lat: null, lng: null },
-  });
+  const [entry, setEntry] = useState(
+    initialEntry || {
+      title: "",
+      location: "",
+      date: "",
+      description: "",
+      photos: [],
+      coordinates: { lat: null, lng: null },
+    }
+  );
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const searchTimeoutRef = useRef(null);
@@ -163,7 +168,7 @@ const TravelEntryForm = ({
   return (
     <div className="entry-form-container">
       <form className="entry-form" onSubmit={handleSubmit}>
-        <h2>Add New Travel Entry</h2>
+        <h2>{isEditing ? "Edit Travel Entry" : "Add New Travel Entry"}</h2>
         <p className="form-instruction">
           Click on the map to select location coordinates
         </p>
@@ -284,12 +289,21 @@ const TravelEntryForm = ({
           />
         </div>
 
-        <button
-          type="submit"
-          disabled={loading || !entry.coordinates.lat || !entry.coordinates.lng}
-        >
-          {loading ? "Saving..." : "Save Entry"}
-        </button>
+        <div className="form-actions">
+          <button
+            type="submit"
+            disabled={
+              loading || !entry.coordinates.lat || !entry.coordinates.lng
+            }
+          >
+            {loading ? "Saving..." : isEditing ? "Update Entry" : "Save Entry"}
+          </button>
+          {isEditing && (
+            <button type="button" onClick={onCancel} className="cancel-button">
+              Cancel
+            </button>
+          )}
+        </div>
       </form>
     </div>
   );
@@ -304,6 +318,19 @@ TravelEntryForm.propTypes = {
   }),
   onSuccess: PropTypes.func,
   onLocationSelect: PropTypes.func.isRequired,
+  initialEntry: PropTypes.shape({
+    title: PropTypes.string,
+    location: PropTypes.string,
+    date: PropTypes.string,
+    description: PropTypes.string,
+    photos: PropTypes.arrayOf(PropTypes.instanceOf(File)),
+    coordinates: PropTypes.shape({
+      lat: PropTypes.number,
+      lng: PropTypes.number,
+    }),
+  }),
+  onCancel: PropTypes.func,
+  isEditing: PropTypes.bool,
 };
 
 export default TravelEntryForm;

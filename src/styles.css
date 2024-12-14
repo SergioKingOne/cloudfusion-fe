@@ -740,3 +740,28 @@ h2::after {
     transform: translateY(-50%) rotate(360deg);
   }
 }
+
+.entry-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.edit-button {
+  background: transparent;
+  border: none;
+  padding: 0.25rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition);
+  opacity: 0.6;
+}
+
+.edit-button:hover {
+  color: var(--accent-color);
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.entry-card:hover .edit-button {
+  opacity: 1;
+}

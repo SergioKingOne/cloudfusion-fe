@@ -55,6 +55,12 @@ const App = () => {
     setEntries((prev) => prev.filter((entry) => entry.id !== deletedEntryId));
   };
 
+  const handleEntryUpdated = (updatedEntry) => {
+    setEntries((prev) =>
+      prev.map((entry) => (entry.id === updatedEntry.id ? updatedEntry : entry))
+    );
+  };
+
   return (
     <div>
       <Navbar />
@@ -72,7 +78,11 @@ const App = () => {
           onLocationSelect={handleLocationSelect}
         />
         {error && <div className="error">{error}</div>}
-        <TravelList entries={entries} onEntryDeleted={handleEntryDeleted} />
+        <TravelList
+          entries={entries}
+          onEntryDeleted={handleEntryDeleted}
+          onEntryUpdated={handleEntryUpdated}
+        />
       </div>
     </div>
   );

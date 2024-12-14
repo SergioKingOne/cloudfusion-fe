@@ -162,3 +162,51 @@ export const searchLocations = async (query) => {
     return [];
   }
 };
+
+export const updateEntry = async (entryId, entry) => {
+  try {
+    const transformedEntry = {
+      title: entry.title,
+      description: entry.description,
+      location: entry.location,
+      latitude: entry.coordinates.lat,
+      longitude: entry.coordinates.lng,
+      visitDate: new Date(entry.date).toISOString(),
+    };
+
+    const response = await axios.put(
+      `${API_BASE_URL}/travel-entries/${entryId}`,
+      transformedEntry
+    );
+
+    // Handle photo updates if needed
+    if (entry.photos && entry.photos.length > 0) {
+      for (const photo of entry.photos) {
+        if (photo instanceof File) {
+          // Only upload new files
+          const {
+            data: { upload_url, key },
+          } = await axios.post(`${API_BASE_URL}/uploads/presigned-url`, {
+            file_type: photo.type,
+          });
+
+          await axios.put(upload_url, photo, {
+            headers: {
+              "Content-Type": photo.type,
+              "Access-Control-Allow-Origin": "*",
+            },
+          });
+
+          await axios.post(`${API_BASE_URL}/travel-entries/${entryId}/images`, {
+            image_key: key,
+          });
+        }
+      }
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("Error in updateEntry:", error);
+    throw error;
+  }
+};
