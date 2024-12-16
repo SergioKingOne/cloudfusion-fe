@@ -16,13 +16,16 @@ const api = axios.create({
 api.interceptors.request.use(async (config) => {
   try {
     const session = await getSession();
+    console.log("Session:", session); // Add this log
     if (session) {
       const token = session.getIdToken().getJwtToken();
       console.log(
         "Adding auth token to request:",
         token.substring(0, 20) + "..."
-      ); // Debug log
+      );
       config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      console.warn("No session found"); // Add this log
     }
     return config;
   } catch (error) {
@@ -86,6 +89,11 @@ export const createUser = async () => {
 };
 
 export const saveEntry = async (entry) => {
+  const session = await getSession();
+  if (!session) {
+    throw new Error("User must be signed in to save entries");
+  }
+
   try {
     // Transform the entry data to match backend expectations
     const transformedEntry = {
@@ -138,7 +146,8 @@ export const fetchEntries = async () => {
   // Transform the data to match frontend expectations
   return response.data.map((entry) => ({
     ...entry,
-    visit_date: entry.visit_date || entry.visitDate, // Handle both formats
+    visit_date: entry.visitDate || entry.visit_date, // Handle both formats
+    visitDate: entry.visitDate || entry.visit_date, // Include both for compatibility
     coordinates: {
       lat: entry.latitude,
       lng: entry.longitude,
