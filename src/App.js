@@ -3,13 +3,16 @@ import Navbar from "./components/Navbar";
 import TravelMap from "./components/TravelMap";
 import TravelEntryForm from "./components/TravelEntryForm";
 import TravelList from "./components/TravelList";
+import Auth from "./components/Auth";
 import { saveEntry, fetchEntries } from "./api/api";
+import { useAuth } from "./contexts/AuthContext";
 
 const App = () => {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState(null);
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
     const loadEntries = async () => {
@@ -60,6 +63,14 @@ const App = () => {
       prev.map((entry) => (entry.id === updatedEntry.id ? updatedEntry : entry))
     );
   };
+
+  if (authLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!user) {
+    return <Auth />;
+  }
 
   return (
     <div>

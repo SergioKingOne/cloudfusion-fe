@@ -1,7 +1,29 @@
 import axios from "axios";
+import { getSession } from "../services/authService";
 
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "http://localhost:5000";
+
+// Create axios instance
+const api = axios.create({
+  baseURL: API_BASE_URL,
+});
+
+// Add auth interceptor
+api.interceptors.request.use(async (config) => {
+  try {
+    const session = await getSession();
+    if (session) {
+      config.headers.Authorization = `Bearer ${session
+        .getIdToken()
+        .getJwtToken()}`;
+    }
+    return config;
+  } catch (error) {
+    return Promise.reject(error);
+  }
+});
+
 const HARDCODED_USER_ID = 1; // For development
 
 export const saveEntry = async (entry) => {
@@ -17,10 +39,7 @@ export const saveEntry = async (entry) => {
       visitDate: new Date(entry.date).toISOString(),
     };
 
-    const response = await axios.post(
-      `${API_BASE_URL}/travel-entries`,
-      transformedEntry
-    );
+    const response = await api.post(`/travel-entries`, transformedEntry);
 
     // If there are photos, upload them
     if (entry.photos && entry.photos.length > 0) {
@@ -32,7 +51,7 @@ export const saveEntry = async (entry) => {
           console.log("Getting presigned URL for:", photo.type);
           const {
             data: { upload_url, key },
-          } = await axios.post(`${API_BASE_URL}/uploads/presigned-url`, {
+          } = await api.post(`/uploads/presigned-url`, {
             file_type: photo.type,
           });
 
@@ -47,12 +66,9 @@ export const saveEntry = async (entry) => {
           });
 
           // Associate image with entry
-          await axios.post(
-            `${API_BASE_URL}/travel-entries/${response.data.id}/images`,
-            {
-              image_key: key,
-            }
-          );
+          await api.post(`/travel-entries/${response.data.id}/images`, {
+            image_key: key,
+          });
         } catch (photoError) {
           console.error("Error uploading photo:", photoError);
           console.error("Error details:", photoError.response?.data);
@@ -70,7 +86,7 @@ export const saveEntry = async (entry) => {
 };
 
 export const fetchEntries = async () => {
-  const response = await axios.get(`${API_BASE_URL}/travel-entries`);
+  const response = await api.get(`/travel-entries`);
   // Transform the data to match frontend expectations
   return response.data.map((entry) => ({
     ...entry,
@@ -84,7 +100,7 @@ export const fetchEntries = async () => {
 
 export const deleteEntry = async (entryId) => {
   try {
-    await axios.delete(`${API_BASE_URL}/travel-entries/${entryId}`);
+    await api.delete(`/travel-entries/${entryId}`);
     return true;
   } catch (error) {
     console.error("Error deleting entry:", error);
@@ -96,21 +112,16 @@ export const deleteEntry = async (entryId) => {
 export const fetchEntryImages = async (entryId) => {
   try {
     // First get the image records
-    const response = await axios.get(
-      `${API_BASE_URL}/travel-entries/${entryId}/images`
-    );
+    const response = await api.get(`/travel-entries/${entryId}/images`);
     console.log("Image response data:", response.data); // Debug the response
 
     // For each image, get a presigned download URL
     const imagesWithUrls = await Promise.all(
       response.data.map(async (image) => {
         try {
-          const presignedResponse = await axios.post(
-            `${API_BASE_URL}/uploads/download-url`,
-            {
-              key: image.image_key,
-            }
-          );
+          const presignedResponse = await api.post(`/uploads/download-url`, {
+            key: image.image_key,
+          });
           return {
             id: image.id,
             url: presignedResponse.data.download_url,
@@ -174,8 +185,8 @@ export const updateEntry = async (entryId, entry) => {
       visitDate: new Date(entry.date).toISOString(),
     };
 
-    const response = await axios.put(
-      `${API_BASE_URL}/travel-entries/${entryId}`,
+    const response = await api.put(
+      `/travel-entries/${entryId}`,
       transformedEntry
     );
 
@@ -186,7 +197,7 @@ export const updateEntry = async (entryId, entry) => {
           // Only upload new files
           const {
             data: { upload_url, key },
-          } = await axios.post(`${API_BASE_URL}/uploads/presigned-url`, {
+          } = await api.post(`/uploads/presigned-url`, {
             file_type: photo.type,
           });
 
@@ -197,7 +208,7 @@ export const updateEntry = async (entryId, entry) => {
             },
           });
 
-          await axios.post(`${API_BASE_URL}/travel-entries/${entryId}/images`, {
+          await api.post(`/travel-entries/${entryId}/images`, {
             image_key: key,
           });
         }
