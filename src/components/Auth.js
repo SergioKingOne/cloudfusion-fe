@@ -8,6 +8,7 @@ const Auth = () => {
   const [name, setName] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [needsVerification, setNeedsVerification] = useState(false);
+  const [tempPassword, setTempPassword] = useState("");
 
   const { signIn, signUp, confirmSignUp } = useAuth();
 
@@ -15,7 +16,11 @@ const Auth = () => {
     e.preventDefault();
 
     if (needsVerification) {
-      const success = await confirmSignUp(email, verificationCode);
+      const success = await confirmSignUp(
+        email,
+        verificationCode,
+        tempPassword
+      );
       if (success) {
         setNeedsVerification(false);
       }
@@ -27,6 +32,7 @@ const Auth = () => {
     } else {
       const success = await signUp(email, password, name);
       if (success) {
+        setTempPassword(password);
         setNeedsVerification(true);
       }
     }

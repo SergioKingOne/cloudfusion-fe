@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useToast } from "./ToastContext";
 import * as authService from "../services/authService";
+import * as api from "../api/api";
 
 const AuthContext = createContext();
 
@@ -27,11 +28,7 @@ export const AuthProvider = ({ children }) => {
   const signUp = async (email, password, name) => {
     try {
       const result = await authService.signUpUser(email, password, name);
-      if (result.user) {
-        addToast("Sign up successful!", "success");
-      } else {
-        addToast("Verification code sent to your email", "success");
-      }
+      addToast("Verification code sent to your email", "success");
       return true;
     } catch (error) {
       addToast(error.message, "error");
@@ -39,10 +36,20 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const confirmSignUp = async (email, code) => {
+  const confirmSignUp = async (email, code, password) => {
     try {
       await authService.confirmSignUpUser(email, code);
-      addToast("Email verified successfully", "success");
+
+      const signInResult = await signIn(email, password);
+      if (signInResult) {
+        try {
+          await api.createUser();
+          addToast("Account created successfully!", "success");
+        } catch (error) {
+          console.error("Error creating user in backend:", error);
+        }
+      }
+
       return true;
     } catch (error) {
       addToast(error.message, "error");
@@ -56,6 +63,15 @@ export const AuthProvider = ({ children }) => {
       if (result?.user) {
         const userData = await authService.getCurrentAuthUser();
         setUser(userData);
+
+        try {
+          await api.createUser();
+        } catch (error) {
+          if (!error.response?.status === 409) {
+            throw error;
+          }
+        }
+
         addToast("Signed in successfully", "success");
         return true;
       }
