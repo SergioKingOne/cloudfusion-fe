@@ -76,7 +76,10 @@ const TravelMap = ({ entries, onLocationSelect, selectedPosition }) => {
                 <Popup>
                   <strong>{entry.location}</strong>
                   <br />
-                  {entry.visit_date || entry.visitDate}
+                  {(entry.visit_date || entry.visitDate) &&
+                    new Date(
+                      entry.visit_date || entry.visitDate
+                    ).toLocaleDateString()}
                 </Popup>
               </Marker>
             );
@@ -105,7 +108,8 @@ TravelMap.propTypes = {
   entries: PropTypes.arrayOf(
     PropTypes.shape({
       location: PropTypes.string.isRequired,
-      visit_date: PropTypes.string.isRequired,
+      visit_date: PropTypes.string,
+      visitDate: PropTypes.string,
       latitude: PropTypes.number.isRequired,
       longitude: PropTypes.number.isRequired,
     })

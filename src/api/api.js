@@ -1,14 +1,102 @@
 import axios from "axios";
+import { getSession, getCurrentAuthUser } from "../services/authService";
 
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "http://localhost:5000";
-const HARDCODED_USER_ID = 1; // For development
+
+// Create axios instance with proper baseURL
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// Add better error handling in the interceptor
+api.interceptors.request.use(async (config) => {
+  try {
+    const session = await getSession();
+    console.log("Session:", session); // Add this log
+    if (session) {
+      const token = session.getIdToken().getJwtToken();
+      console.log(
+        "Adding auth token to request:",
+        token.substring(0, 20) + "..."
+      );
+      config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      console.warn("No session found"); // Add this log
+    }
+    return config;
+  } catch (error) {
+    console.error("Error in request interceptor:", error);
+    return Promise.reject(error);
+  }
+});
+
+// Add response interceptor for better error handling
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error("API Error:", error);
+    if (error.code === "ERR_CONNECTION_REFUSED") {
+      throw new Error(
+        "Unable to connect to the server. Please check if the backend is running."
+      );
+    }
+    throw error;
+  }
+);
+
+// Create user in backend after Cognito signup
+export const createUser = async () => {
+  try {
+    const cognitoUser = await getCurrentAuthUser();
+    console.log("Current Cognito user:", cognitoUser); // Debug log
+
+    if (!cognitoUser) {
+      throw new Error("No authenticated user found");
+    }
+
+    const userData = {
+      name: cognitoUser.attributes.name,
+      email: cognitoUser.attributes.email,
+      cognito_id: cognitoUser.username,
+    };
+
+    console.log("Attempting to create user with data:", userData); // Debug log
+
+    const response = await api.post("/api/users", userData);
+    console.log("User creation response:", response.data); // Debug log
+    return response.data;
+  } catch (error) {
+    console.error("Error creating user:", error);
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      console.error("Error response data:", error.response.data);
+      console.error("Error response status:", error.response.status);
+      console.error("Error response headers:", error.response.headers);
+    } else if (error.request) {
+      // The request was made but no response was received
+      console.error("No response received:", error.request);
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      console.error("Error setting up request:", error.message);
+    }
+    throw error;
+  }
+};
 
 export const saveEntry = async (entry) => {
+  const session = await getSession();
+  if (!session) {
+    throw new Error("User must be signed in to save entries");
+  }
+
   try {
     // Transform the entry data to match backend expectations
     const transformedEntry = {
-      user_id: HARDCODED_USER_ID,
       title: entry.title,
       description: entry.description,
       location: entry.location,
@@ -17,28 +105,18 @@ export const saveEntry = async (entry) => {
       visitDate: new Date(entry.date).toISOString(),
     };
 
-    const response = await axios.post(
-      `${API_BASE_URL}/travel-entries`,
-      transformedEntry
-    );
+    const response = await api.post(`/travel-entries`, transformedEntry);
 
-    // If there are photos, upload them
-    if (entry.photos && entry.photos.length > 0) {
-      console.log("Uploading photos:", entry.photos);
-
+    // Handle photo uploads
+    if (entry.photos?.length > 0) {
       for (const photo of entry.photos) {
         try {
-          // First get a presigned URL
-          console.log("Getting presigned URL for:", photo.type);
           const {
             data: { upload_url, key },
-          } = await axios.post(`${API_BASE_URL}/uploads/presigned-url`, {
+          } = await api.post(`/uploads/presigned-url`, {
             file_type: photo.type,
           });
 
-          console.log("Got presigned URL:", upload_url);
-
-          // Upload to S3
           await axios.put(upload_url, photo, {
             headers: {
               "Content-Type": photo.type,
@@ -46,16 +124,11 @@ export const saveEntry = async (entry) => {
             },
           });
 
-          // Associate image with entry
-          await axios.post(
-            `${API_BASE_URL}/travel-entries/${response.data.id}/images`,
-            {
-              image_key: key,
-            }
-          );
+          await api.post(`/travel-entries/${response.data.id}/images`, {
+            image_key: key,
+          });
         } catch (photoError) {
           console.error("Error uploading photo:", photoError);
-          console.error("Error details:", photoError.response?.data);
           throw photoError;
         }
       }
@@ -64,17 +137,17 @@ export const saveEntry = async (entry) => {
     return response.data;
   } catch (error) {
     console.error("Error in saveEntry:", error);
-    console.error("Error details:", error.response?.data);
     throw error;
   }
 };
 
 export const fetchEntries = async () => {
-  const response = await axios.get(`${API_BASE_URL}/travel-entries`);
+  const response = await api.get(`/travel-entries`);
   // Transform the data to match frontend expectations
   return response.data.map((entry) => ({
     ...entry,
-    visit_date: entry.visit_date || entry.visitDate, // Handle both formats
+    visit_date: entry.visitDate || entry.visit_date, // Handle both formats
+    visitDate: entry.visitDate || entry.visit_date, // Include both for compatibility
     coordinates: {
       lat: entry.latitude,
       lng: entry.longitude,
@@ -84,7 +157,7 @@ export const fetchEntries = async () => {
 
 export const deleteEntry = async (entryId) => {
   try {
-    await axios.delete(`${API_BASE_URL}/travel-entries/${entryId}`);
+    await api.delete(`/travel-entries/${entryId}`);
     return true;
   } catch (error) {
     console.error("Error deleting entry:", error);
@@ -96,21 +169,16 @@ export const deleteEntry = async (entryId) => {
 export const fetchEntryImages = async (entryId) => {
   try {
     // First get the image records
-    const response = await axios.get(
-      `${API_BASE_URL}/travel-entries/${entryId}/images`
-    );
+    const response = await api.get(`/travel-entries/${entryId}/images`);
     console.log("Image response data:", response.data); // Debug the response
 
     // For each image, get a presigned download URL
     const imagesWithUrls = await Promise.all(
       response.data.map(async (image) => {
         try {
-          const presignedResponse = await axios.post(
-            `${API_BASE_URL}/uploads/download-url`,
-            {
-              key: image.image_key,
-            }
-          );
+          const presignedResponse = await api.post(`/uploads/download-url`, {
+            key: image.image_key,
+          });
           return {
             id: image.id,
             url: presignedResponse.data.download_url,
@@ -174,8 +242,8 @@ export const updateEntry = async (entryId, entry) => {
       visitDate: new Date(entry.date).toISOString(),
     };
 
-    const response = await axios.put(
-      `${API_BASE_URL}/travel-entries/${entryId}`,
+    const response = await api.put(
+      `/travel-entries/${entryId}`,
       transformedEntry
     );
 
@@ -186,7 +254,7 @@ export const updateEntry = async (entryId, entry) => {
           // Only upload new files
           const {
             data: { upload_url, key },
-          } = await axios.post(`${API_BASE_URL}/uploads/presigned-url`, {
+          } = await api.post(`/uploads/presigned-url`, {
             file_type: photo.type,
           });
 
@@ -197,7 +265,7 @@ export const updateEntry = async (entryId, entry) => {
             },
           });
 
-          await axios.post(`${API_BASE_URL}/travel-entries/${entryId}/images`, {
+          await api.post(`/travel-entries/${entryId}/images`, {
             image_key: key,
           });
         }
