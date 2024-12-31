@@ -1,8 +1,8 @@
 import axios from "axios";
 import { getSession, getCurrentAuthUser } from "../services/authService";
+import { config } from "../config/config";
 
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "http://localhost:5000";
+const API_BASE_URL = config.API_BASE_URL;
 
 // Create axios instance with proper baseURL
 const api = axios.create({
